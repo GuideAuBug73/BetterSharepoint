@@ -84,7 +84,11 @@ test('1 et 8 · boutons dossier parent et résultats enrichis', async () => {
   // Les 3 fichiers et le résultat ajouté plus tard ont un bouton ; pas la page de site.
   await page.waitForFunction(() => document.querySelectorAll('#results .bsp-parent').length === 4);
   assert.equal(await results.nth(3).locator('.bsp-parent').count(), 0, 'pas de bouton pour une page de site');
-  assert.equal(await page.locator('header .bsp-actions').count(), 0, 'pas de bouton dans la navigation');
+  // Carte réelle : un seul bouton, sur le titre, et le lien « Emplacement » n'est pas pris pour le fichier.
+  assert.equal(await results.nth(0).locator('.bsp-parent').count(), 1);
+  assert.equal(await results.nth(0).locator('h2 .bsp-parent').count(), 1);
+  assert.equal(await results.nth(0).locator('a[aria-label^="Emplacement"][data-bsp-path]').count(), 0);
+  assert.equal(await page.locator('header[role="banner"] .bsp-actions').count(), 0, 'pas de bouton dans la navigation');
 
   // Lien direct : dossier parent calculé depuis l'URL.
   const alpha = results.nth(1).locator('.bsp-parent');
@@ -166,7 +170,7 @@ test('4, 5, 7, 9 · barre de chemin, favoris, récents, raccourcis', async () =>
 
   // Copier le chemin (Maj+C) – aucune ligne sélectionnée → page courante. On désélectionne d'abord.
   await page.evaluate(() => document.querySelectorAll('[aria-selected="true"]').forEach((r) => r.setAttribute('aria-selected', 'false')));
-  await page.mouse.click(1200, 780);
+  await page.mouse.click(640, 450);
   await page.keyboard.press('Shift+C');
   await shadow(page, '.toast.show:has-text("Chemin copié")').waitFor();
   assert.equal(await page.evaluate(() => navigator.clipboard.readText()), ORIGIN + '/sites/X/Shared Documents/Projets');
@@ -180,7 +184,7 @@ test('4, 5, 7, 9 · barre de chemin, favoris, récents, raccourcis', async () =>
   await page.locator('#sbcId input').fill('');
   await page.locator('#sbcId input').type('f');
   assert.equal(await page.locator('#sbcId input').inputValue(), 'f');
-  await page.mouse.click(1200, 780);
+  await page.mouse.click(640, 450);
 
   // Favori (F)
   await page.keyboard.press('f');
@@ -209,10 +213,10 @@ test('4, 5, 7, 9 · barre de chemin, favoris, récents, raccourcis', async () =>
 
 test('11 · clic du milieu et Ctrl+clic sur les noms de la bibliothèque', async () => {
   const page = await openPage(LIB_URL);
-  const name = page.locator('[data-automationid="FieldRenderer-name"]:has-text("rapport.docx")');
+  const name = page.locator('[data-id="heroField"]:has-text("rapport.docx")');
   assert.equal(await openedUrl(() => name.click({ button: 'middle' })), ORIGIN + '/sites/X/Shared%20Documents/Projets/rapport.docx');
 
-  const folder = page.locator('[data-automationid="FieldRenderer-name"]:has-text("Sous-dossier")');
+  const folder = page.locator('[data-id="heroField"]:has-text("Sous-dossier")');
   assert.equal(await openedUrl(() => folder.click({ modifiers: ['Control'] })), ORIGIN + '/sites/X/Shared%20Documents/Projets/Sous-dossier');
   assert.equal(await page.evaluate(() => window.nameClicks), 0, 'SharePoint ne reçoit pas le clic');
 
@@ -222,9 +226,29 @@ test('11 · clic du milieu et Ctrl+clic sur les noms de la bibliothèque', async
   await page.close();
 });
 
+test('recherche dans une bibliothèque (view=7&q=) : chemins réels par identifiant', async () => {
+  const page = await openPage(LIB_URL + '&view=7&q=rapport');
+  const name = page.locator('[data-id="heroField"]:has-text("rapport.docx")');
+  // Le fichier est dans un autre dossier que le dossier courant.
+  assert.equal(await openedUrl(() => name.click({ button: 'middle' })), ORIGIN + '/sites/X/Shared%20Documents/Archives/2025/rapport.docx');
+  await page.mouse.move(5, 5);
+  await name.hover();
+  await shadow(page, '.hovercard .hc-path:has-text("Archives/2025")').waitFor();
+  await page.mouse.move(5, 5);
+  // Un dossier dont le nom contient un point reste un dossier.
+  const dotted = page.locator('[data-id="heroField"]:has-text("Syngo.via")');
+  assert.equal(await openedUrl(() => dotted.click({ modifiers: ['Control'] })), ORIGIN + '/sites/X/Shared%20Documents/Projets/Syngo.via');
+  await page.close();
+
+  const plain = await openPage(LIB_URL);
+  const dotted2 = plain.locator('[data-id="heroField"]:has-text("Syngo.via")');
+  assert.equal(await openedUrl(() => dotted2.click({ modifiers: ['Control'] })), ORIGIN + '/sites/X/Shared%20Documents/Projets/Syngo.via');
+  await plain.close();
+});
+
 test('15 · aperçu au survol', async () => {
   const page = await openPage(LIB_URL);
-  await page.locator('[data-automationid="FieldRenderer-name"]:has-text("rapport.docx")').hover();
+  await page.locator('[data-id="heroField"]:has-text("rapport.docx")').hover();
   const card = shadow(page, '.hovercard');
   await card.waitFor({ timeout: 5000 });
   await shadow(page, '.hovercard:has-text("Marie Curie")').waitFor();
@@ -232,7 +256,7 @@ test('15 · aperçu au survol', async () => {
   assert.match(t, /rapport\.docx/);
   assert.match(t, /version 2\.0/);
   await shot(page, '04-survol');
-  await page.locator('[data-automationid="FieldRenderer-name"]:has-text("Sous-dossier")').hover();
+  await page.locator('[data-id="heroField"]:has-text("Sous-dossier")').hover();
   await shadow(page, '.hovercard:has-text("7 éléments")').waitFor();
   await page.mouse.move(5, 5);
   await page.waitForTimeout(100);
@@ -243,7 +267,7 @@ test('15 · aperçu au survol', async () => {
 test('18 · historique des versions et comparaison', async () => {
   const page = await openPage(LIB_URL);
   // notes.txt est la ligne sélectionnée.
-  await page.mouse.click(1200, 780);
+  await page.mouse.click(640, 450);
   await page.keyboard.press('v');
   const panel = shadow(page, '.panel');
   await panel.waitFor();
@@ -265,7 +289,7 @@ test('18 · historique des versions et comparaison', async () => {
 test('10 et 14 · modes sombre et compact, masquage d’éléments', async () => {
   await clearStorage();
   const page = await openPage(LIB_URL);
-  await page.mouse.click(1200, 780);
+  await page.mouse.click(640, 450);
   await page.keyboard.press('d');
   await page.waitForFunction(() => document.documentElement.classList.contains('bsp-dark'));
   const filter = await page.evaluate(() => getComputedStyle(document.documentElement).filter);

@@ -91,6 +91,19 @@
       ).then((r) => r.value || (r.d && r.d.results) || []);
     },
 
+    /** Élément de liste par identifiant : chemin réel d'une ligne de bibliothèque. */
+    listItem(webPath, listId, id, origin) {
+      return get(
+        base(webPath, origin) +
+          "/_api/web/lists(guid'" +
+          U.stripGuid(listId) +
+          "')/items(" +
+          Number(id) +
+          ')?$select=FileRef,FileLeafRef,FSObjType',
+        { cache: true }
+      );
+    },
+
     /** Contenu texte d'un fichier (version courante ou URL de version _vti_history). */
     text(absUrl) {
       return get(absUrl, { text: true, accept: '*/*' });

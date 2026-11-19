@@ -13,7 +13,7 @@ Elle fonctionne avec ta session SharePoint habituelle : aucune application à d�
 | 🕘 | **Dossiers récents** : les 20 derniers dossiers visités. | Popup, palette, touche `R` |
 | ⌨️ | **Palette de commandes** : `Ctrl+K` partout dans SharePoint pour retrouver un favori, un dossier récent, un site suivi, lancer une action ou chercher dans SharePoint. | Partout |
 | ⌨️ | **Raccourcis clavier** personnalisables (voir plus bas). | Partout |
-| 📍 | **Barre de chemin** : chemin complet du dossier ou du fichier affiché, chaque segment cliquable, boutons copier (lien direct, chemin, Markdown). | En bas à gauche |
+| 📍 | **Barre de chemin** : chemin complet du dossier ou du fichier affiché, chaque segment cliquable, boutons copier (lien direct, chemin, Markdown). | En bas à droite (réglable) |
 | 🗂️ | **Nouvel onglet fiable** : clic du milieu et Ctrl+clic fonctionnent sur les noms de fichiers et dossiers des bibliothèques. Option « toujours ouvrir dans un nouvel onglet ». | Bibliothèques |
 | 🧹 | **Mode compact** : lignes et marges réduites, éléments masquables (en-tête, barre d'applications, commentaires…), et sélecteur « Masquer un élément de la page… » pour retirer ce qui te gêne. | Partout |
 | 🌙 | **Mode sombre**, désactivable site par site. | Partout |
@@ -47,7 +47,7 @@ Les raccourcis sans `Ctrl` sont ignorés quand tu écris dans un champ. Tout se 
    - Brave : `brave://extensions`
 3. Active le **mode développeur**.
 4. Clique sur **Charger l'extension non empaquetée** et choisis le dossier du dépôt (celui qui contient `manifest.json`).
-5. Ouvre un site SharePoint : la barre de chemin apparaît en bas à gauche dans les bibliothèques et `Ctrl+K` ouvre la palette.
+5. Ouvre un site SharePoint : la barre de chemin apparaît en bas à droite dans les bibliothèques et `Ctrl+K` ouvre la palette.
 
 Après une mise à jour du code, clique sur « Recharger » dans la page des extensions puis recharge l'onglet SharePoint.
 

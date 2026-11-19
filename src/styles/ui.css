@@ -252,7 +252,7 @@ a {
 /* ---------- Barre de chemin ---------- */
 .pathbar {
   position: fixed;
-  left: 12px;
+  right: 16px;
   bottom: 12px;
   max-width: min(78vw, 900px);
   display: flex;
@@ -270,6 +270,10 @@ a {
 .pathbar:hover,
 .pathbar:focus-within {
   opacity: 1;
+}
+.pathbar.left {
+  right: auto;
+  left: 12px;
 }
 .pathbar.collapsed {
   padding: 2px;

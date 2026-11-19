@@ -9,7 +9,8 @@ const GUID = 'aaaa1111-2222-3333-4444-555566667777';
 
 const ctxScript = (extra) => `<script>window._spPageContextInfo = Object.assign({
   webAbsoluteUrl: '${ORIGIN}/sites/X', webServerRelativeUrl: '/sites/X', webTitle: 'Projet X',
-  siteAbsoluteUrl: '${ORIGIN}/sites/X', siteServerRelativeUrl: '/sites/X', isSPO: true
+  siteAbsoluteUrl: '${ORIGIN}/sites/X', siteServerRelativeUrl: '/sites/X', isSPO: true,
+  listUrl: '/sites/X/Shared Documents', listTitle: 'Documents', listId: '{0b5f1c2e-1111-2222-3333-444455556666}'
 }, ${JSON.stringify(extra || {})});</script>`;
 
 const shell = (body, extra) => `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>SharePoint</title>${ctxScript(extra)}
@@ -23,7 +24,12 @@ function searchPage() {
   return shell(`
 <h1>Résultats</h1>
 <ul id="results">
-  <li role="listitem" class="result"><a href="${ORIGIN}/sites/X/_layouts/15/Doc.aspx?sourcedoc=%7B${GUID.toUpperCase()}%7D&file=Budget%202026.xlsx&action=default">Budget 2026.xlsx</a><p>Prévisions budgétaires</p></li>
+  <li class="wrapper-101"><article aria-posinset="1" aria-label="XLSX, Fichier Excel résultat. Budget 2026.">
+    <a class="thumbnailLink-1" href="${ORIGIN}/sites/X/_layouts/15/Doc.aspx?sourcedoc=%7B${GUID.toUpperCase()}%7D&file=Budget%202026.xlsx&action=default"><img alt=""></a>
+    <header><h2><a class="ms-Link" href="${ORIGIN}/sites/X/_layouts/15/Doc.aspx?sourcedoc=%7B${GUID.toUpperCase()}%7D&file=Budget%202026.xlsx&action=default">Budget 2026.xlsx</a></h2></header>
+    <div class="container-229"><a class="link-232" target="_blank" aria-label="Emplacement. Dans SharePoint. Projet X site." href="${ORIGIN}/sites/X/Shared Documents/Finance">SharePoint • Projet X … Finance</a></div>
+    <p>Prévisions budgétaires</p>
+  </article></li>
   <li role="listitem" class="result"><a href="${ORIGIN}/sites/X/Shared%20Documents/Projets/Alpha/budget.pdf">budget.pdf</a><p>Budget du projet Alpha</p></li>
   <li role="listitem" class="result"><a href="${ORIGIN}/sites/Y/Shared%20Documents/Archives/budget.pdf">budget.pdf</a></li>
   <li role="listitem" class="result"><a href="${ORIGIN}/sites/X/SitePages/Budget.aspx">Page Budget</a></li>
@@ -41,26 +47,39 @@ function searchPage() {
 </script>`);
 }
 
+// Structure relevée sur un vrai tenant (liste « spartan », novembre 2026).
 function libraryPage() {
-  const row = (name, folder, selected) => `
-  <div role="row" aria-selected="${selected ? 'true' : 'false'}" class="ms-DetailsRow">
-    <div role="gridcell"><i data-icon-name="${folder ? 'FabricFolder' : 'Page'}"></i></div>
-    <div role="gridcell" data-automation-key="displayNameColumn_1"><span role="button" data-automationid="FieldRenderer-name" tabindex="0">${name}</span></div>
-    <div role="gridcell">Il y a 2 jours</div>
+  const row = (id, name, folder, selected) => `
+  <div role="row" aria-selected="${selected ? 'true' : 'false'}" data-automationid="row-${id}" data-selection-index="${id}" class="row_1 docLibRow_1">
+    <div role="gridcell" data-automationid="row-selection-${id}"><input type="checkbox" aria-label="${name}" data-automationid="selection-checkbox"></div>
+    <div role="gridcell" data-automationid="field-DocIcon"><i role="img" aria-label="${folder ? 'Dossier Jaune' : '.' + name.split('.').pop()}"></i></div>
+    <div role="rowheader" data-automationid="field-LinkFilename"><span role="button" title="${name}" data-id="heroField" data-selection-invoke="true">${name}</span>
+      <div data-automationid="heroCommands"><button title="Autres actions" data-automationid="moreActionsHeroField"></button></div></div>
+    <div role="gridcell" data-automationid="field-Modified">Il y a 2 jours</div>
   </div>`;
   return shell(`
-<div role="grid" class="ms-DetailsList" aria-label="Documents">
-  <div role="row"><div role="columnheader">Type</div><div role="columnheader">Nom</div><div role="columnheader">Modifié</div></div>
-  ${row('Sous-dossier', true)}
-  ${row('rapport.docx', false)}
-  ${row('notes.txt', false, true)}
+<input class="rowFocusInput_1" role="grid" aria-owns="html-list_3">
+<div id="list-content-id" role="grid" data-automationid="list-content" aria-label="Projets">
+  <div role="row" data-automationid="row-header"><div role="columnheader">Type</div><div role="columnheader">Nom</div><div role="columnheader">Modifié</div></div>
+  ${row(11, 'Sous-dossier', true)}
+  ${row(12, 'Syngo.via', true)}
+  ${row(13, 'rapport.docx', false)}
+  ${row(14, 'notes.txt', false, true)}
 </div>
 <script>
   // Comme SharePoint : un clic sur le nom navigue par script (pas de vrai lien).
   window.nameClicks = 0;
-  document.querySelectorAll('[data-automationid="FieldRenderer-name"]').forEach((n) => n.addEventListener('click', () => window.nameClicks++));
+  document.querySelectorAll('[data-id="heroField"]').forEach((n) => n.addEventListener('click', () => window.nameClicks++));
 </script>`);
 }
+
+// Recherche dans la bibliothèque : chemins réels des éléments, par identifiant.
+const LIST_ITEMS = {
+  11: { FileRef: '/sites/X/Shared Documents/Projets/Sous-dossier', FileLeafRef: 'Sous-dossier', FSObjType: 1 },
+  12: { FileRef: '/sites/X/Shared Documents/Projets/Syngo.via', FileLeafRef: 'Syngo.via', FSObjType: 1 },
+  13: { FileRef: '/sites/X/Shared Documents/Archives/2025/rapport.docx', FileLeafRef: 'rapport.docx', FSObjType: 0 },
+  14: { FileRef: '/sites/X/Shared Documents/Projets/notes.txt', FileLeafRef: 'notes.txt', FSObjType: 0 },
+};
 
 const PNG_1PX = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAEAAAAAwCAIAAADJmOS+AAAAQ0lEQVR4nO3PQQ0AIBDAMMC/5+ODgiUtZtj0vLYB5kG8gVqsXoleoF6gF6gX6AXqBXqBeoFeoF6gF6gX6AXqBXqBeoFeYJYBYdEBf5uS8B0AAAAASUVORK5CYII=',
@@ -142,6 +161,8 @@ async function install(context, log) {
     const html = (body) => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body });
 
     if (p.endsWith('/_api/search/query')) return json(searchJson());
+    const li = /\/_api\/web\/lists\(guid'[^']+'\)\/items\((\d+)\)$/i.exec(p);
+    if (li) return LIST_ITEMS[li[1]] ? json(LIST_ITEMS[li[1]]) : json({ error: 'not found' }, 404);
     if (/\/_api\/web\/GetFileById\(/i.test(p)) return json({ ServerRelativeUrl: '/sites/X/Shared Documents/Finance/Budget 2026.xlsx', Name: 'Budget 2026.xlsx' });
     if (/\/_api\/social\.following\/my\/followed/i.test(p)) {
       return json({ value: [{ Name: 'Comptabilité', Uri: ORIGIN + '/sites/Compta' }, { Name: 'Ressources humaines', Uri: ORIGIN + '/sites/RH' }] });

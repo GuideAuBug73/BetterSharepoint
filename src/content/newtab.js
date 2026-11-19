@@ -11,6 +11,7 @@
 
   const GRID = '[role="grid"], [role="treegrid"], .ms-DetailsList';
   const NAME_SEL = [
+    '[data-automationid="field-LinkFilename"] [data-id="heroField"]',
     '[data-automationid="FieldRenderer-name"]',
     '[data-automationid="field-LinkFilename"]',
     '[data-automationid="field-FileLeafRef"]',
@@ -57,6 +58,29 @@
     return null;
   }
 
+  /** Recherche dans une bibliothèque (?q=…) : les résultats viennent de toute la bibliothèque. */
+  function isListSearch() {
+    return !!new URLSearchParams(location.search).get('q');
+  }
+
+  /** Identifiant d'élément de liste porté par la ligne (vues modernes). */
+  function rowId(row) {
+    const v = row.getAttribute('data-selection-index') || ((row.getAttribute('data-automationid') || '').match(/^row-(\d+)$/) || [])[1];
+    return v && /^\d+$/.test(v) ? v : null;
+  }
+
+  function rowIsFolder(row, name) {
+    if (row.querySelector(FOLDER_ICON)) return true;
+    const icon = row.querySelector('[data-automationid="field-DocIcon"] [aria-label], [data-automationid="field-DocIcon"][aria-label]');
+    const label = icon ? icon.getAttribute('aria-label') || '' : '';
+    if (/^\.[a-z0-9]+$/i.test(label.trim())) return false;
+    return !U.extension(name);
+  }
+
+  /**
+   * Élément d'une ligne, calculé sans appel réseau. Renvoie null quand le chemin ne peut pas
+   * être déduit de la page (recherche dans une bibliothèque) : utiliser alors resolveRow().
+   */
   function rowItem(row) {
     if (!row) return null;
     const a = row.querySelector('a[href]');
@@ -64,18 +88,42 @@
       const p = U.parse(a.href);
       if (p && p.path && (p.kind === 'file' || p.kind === 'folder')) return Object.assign(p, { title: U.basename(p.path) });
     }
+    if (isListSearch()) return null;
     const { text } = rowName(row);
     const folder = currentFolder();
     if (!text || !folder || text.includes('/')) return null;
-    const isFolder = !!row.querySelector(FOLDER_ICON) || !U.extension(text);
-    return { kind: isFolder ? 'folder' : 'file', path: folder + '/' + text, origin: location.origin, title: text };
+    return { kind: rowIsFolder(row, text) ? 'folder' : 'file', path: folder + '/' + text, origin: location.origin, title: text };
   }
 
-  function selectedItems() {
-    return Array.from(document.querySelectorAll('[role="row"][aria-selected="true"]'))
-      .filter((r) => r.closest(GRID))
-      .map(rowItem)
-      .filter(Boolean);
+  /** Élément d'une ligne, en interrogeant l'API de la liste si nécessaire. */
+  async function resolveRow(row) {
+    const quick = rowItem(row);
+    if (quick) return quick;
+    const id = rowId(row);
+    const ctx = BSP.pageContext();
+    if (!id || !ctx.listId) return null;
+    try {
+      const r = await BSP.api.listItem(ctx.webServerRelativeUrl || '/', ctx.listId, id);
+      if (!r || !r.FileRef) return null;
+      const path = U.normalizePath(r.FileRef);
+      return { kind: Number(r.FSObjType) === 1 ? 'folder' : 'file', path, origin: location.origin, title: r.FileLeafRef || U.basename(path) };
+    } catch (e) {
+      BSP.log('listItem', e);
+      return null;
+    }
+  }
+
+  /** Clé stable d'une ligne, pour l'aperçu au survol. */
+  function rowKey(row) {
+    const id = rowId(row);
+    if (id) return location.pathname + '#' + id;
+    const it = rowItem(row);
+    return it ? it.origin + it.path : '';
+  }
+
+  async function selectedItems() {
+    const rows = Array.from(document.querySelectorAll('[role="row"][aria-selected="true"]')).filter((r) => r.closest(GRID));
+    return (await Promise.all(rows.map(resolveRow))).filter(Boolean);
   }
 
   function isRealLink(a) {
@@ -97,12 +145,23 @@
     const nm = rowName(row);
     if (!nm.node || !nm.node.contains(e.target)) return;
     const it = rowItem(row);
-    if (!it) return;
-    // Clic simple + « toujours nouvel onglet » : seulement pour les fichiers, les dossiers restent sur place.
-    if (plain && it.kind !== 'file') return;
+    if (it) {
+      // Clic simple + « toujours nouvel onglet » : seulement pour les fichiers, les dossiers restent sur place.
+      if (plain && it.kind !== 'file') return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      BSP.open(BSP.urlFor(it), { newTab: true, background: !plain && !e.shiftKey });
+      return;
+    }
+    // Chemin inconnu (recherche dans une bibliothèque) : le résoudre par l'identifiant de la ligne.
+    if (plain || !rowId(row)) return;
     e.preventDefault();
     e.stopImmediatePropagation();
-    BSP.open(BSP.urlFor(it), { newTab: true, background: !plain && !e.shiftKey });
+    const background = !e.shiftKey;
+    resolveRow(row).then((r) => {
+      if (r) BSP.open(BSP.urlFor(r), { newTab: true, background });
+      else BSP.ui.toast('Impossible de retrouver l’emplacement de cet élément', 'warn');
+    });
   }
 
   // Empêche le défilement automatique du clic du milieu sur les noms.
@@ -116,6 +175,10 @@
     rowOf,
     rowName,
     rowItem,
+    resolveRow,
+    rowKey,
+    rowId,
+    isListSearch,
     selectedItems,
     currentFolder,
     init() {

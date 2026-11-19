@@ -36,6 +36,7 @@
     },
     recentsMax: 20,
     alwaysNewTab: false,
+    pathBarPosition: 'right', // 'right' ou 'left' (coin inférieur)
     folderOpenMode: 'direct', // 'direct' ou 'allitems'
     hoverDelay: 600,
     shortcuts: {

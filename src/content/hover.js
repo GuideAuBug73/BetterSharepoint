@@ -13,18 +13,20 @@
   let currentKey = '';
   let lastMouse = { x: 0, y: 0 };
 
-  function itemFromTarget(t) {
+  /** Cible survolée : { key, anchor, get() } où get() renvoie l'élément (éventuellement via l'API). */
+  function targetOf(t) {
     if (!t || !t.closest || t.closest('#bsp-ui-host, .bsp-actions, .bsp-meta')) return null;
     const a = t.closest('a[data-bsp-path]');
     if (a) {
-      return { kind: a.getAttribute('data-bsp-kind') || 'file', path: a.getAttribute('data-bsp-path'), origin: a.getAttribute('data-bsp-origin') || location.origin, anchor: a };
+      const it = { kind: a.getAttribute('data-bsp-kind') || 'file', path: a.getAttribute('data-bsp-path'), origin: a.getAttribute('data-bsp-origin') || location.origin, anchor: a };
+      return { key: it.origin + it.path, anchor: a, get: async () => it };
     }
     const row = BSP.newtab.rowOf(t);
     if (row) {
       const nm = BSP.newtab.rowName(row);
       if (nm.node && nm.node.contains(t)) {
-        const it = BSP.newtab.rowItem(row);
-        if (it) return Object.assign(it, { anchor: nm.node });
+        const key = BSP.newtab.rowKey(row);
+        if (key) return { key, anchor: nm.node, get: () => BSP.newtab.resolveRow(row) };
       }
     }
     return null;
@@ -32,14 +34,17 @@
 
   function onOver(e) {
     if (!BSP.feature('hoverPreview')) return;
-    const it = itemFromTarget(e.target);
-    const key = it ? it.origin + it.path : '';
+    const target = targetOf(e.target);
+    const key = target ? target.key : '';
     if (key === currentKey) return;
     currentKey = key;
     clearTimeout(timer);
     hide();
-    if (!it) return;
-    timer = setTimeout(() => show(it), Math.max(150, BSP.settings.hoverDelay || 600));
+    if (!target) return;
+    timer = setTimeout(async () => {
+      const it = await target.get();
+      if (it && currentKey === key) show(Object.assign({}, it, { anchor: target.anchor }), key);
+    }, Math.max(150, BSP.settings.hoverDelay || 600));
   }
 
   function onMove(e) {
@@ -68,9 +73,8 @@
     });
   }
 
-  async function show(it) {
+  async function show(it, myKey) {
     const r = BSP.ui.ensure();
-    const myKey = it.origin + it.path;
     card = BSP.el('div', { class: 'hovercard', role: 'tooltip' });
     const name = U.basename(it.path);
     const ext = U.extension(name);
@@ -128,6 +132,7 @@
       document.addEventListener('scroll', () => hide(), { capture: true, passive: true });
       document.addEventListener('mousedown', () => {
         clearTimeout(timer);
+        currentKey = '';
         hide();
       }, true);
     },

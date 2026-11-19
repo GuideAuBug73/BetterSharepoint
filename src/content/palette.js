@@ -32,7 +32,7 @@
       { id: 'favorite', title: 'Ajouter ou retirer des favoris', hint: f('favorite'), feature: 'favorites' },
       { id: 'versions', title: 'Historique des versions', hint: f('versions'), feature: 'versions' },
       { id: 'dark', title: 'Basculer le mode sombre', hint: f('dark') },
-      { id: 'darkExcludeSite', title: 'Désactiver le mode sombre sur ce site' },
+      { id: 'darkExcludeSite', title: 'Désactiver le mode sombre sur ce site', when: () => BSP.theme.isDark() },
       { id: 'compact', title: 'Basculer le mode compact', hint: f('compact') },
       { id: 'pickToHide', title: 'Masquer un élément de la page…' },
       { id: 'search', title: 'Aller à la barre de recherche SharePoint', hint: f('search') },
@@ -40,7 +40,7 @@
       { id: 'openOptions', title: 'Ouvrir les options de BetterSharePoint' },
     ];
     return list
-      .filter((a) => !a.feature || BSP.feature(a.feature))
+      .filter((a) => (!a.feature || BSP.feature(a.feature)) && (!a.when || a.when()))
       .map((a) => ({ type: 'action', title: a.title, hint: a.hint, icon: BSP.icons.bolt, run: () => BSP.actions[a.id]() }));
   }
 

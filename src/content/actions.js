@@ -8,7 +8,7 @@
 
   /** L'élément visé : la ligne sélectionnée d'une bibliothèque s'il y en a une seule, sinon la page. */
   async function target() {
-    const sel = BSP.newtab && BSP.newtab.selectedItems ? BSP.newtab.selectedItems() : [];
+    const sel = BSP.newtab && BSP.newtab.selectedItems ? await BSP.newtab.selectedItems() : [];
     if (sel.length === 1) return sel[0];
     return BSP.current();
   }

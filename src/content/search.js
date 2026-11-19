@@ -11,9 +11,13 @@
   const BSP = (g.BSP = g.BSP || {});
   const U = BSP.url;
 
-  const EXCLUDE = 'header, nav, [role="navigation"], [role="banner"], #SuiteNavWrapper, #O365_NavHeader, [data-bsp], #bsp-ui-host';
-  const CONTAINER =
-    '[role="listitem"], [role="option"], [role="row"], [role="article"], li, [data-automationid*="result" i], [data-automation-id*="result" i], [class*="result" i]';
+  // Zones de navigation de SharePoint (pas les <header> internes des cartes de résultat).
+  const EXCLUDE =
+    '[role="banner"], [role="navigation"], nav, #SuiteNavWrapper, #O365_NavHeader, #spSiteHeader, [data-automationid="SiteHeader"], [data-bsp], #bsp-ui-host';
+  // Carte d'un résultat : un seul élément décoré par carte.
+  const CARD = 'article, [role="article"], [role="listitem"], [role="option"], [role="row"], li, [data-automationid*="result" i]';
+  // Lien « Emplacement » d'une carte : il pointe vers le dossier qui contient le résultat.
+  const LOCATION_RE = /^\s*(emplacement|location|chemin d|path)\b/i;
 
   let observer = null;
   let decorated = [];
@@ -56,33 +60,44 @@
   }
 
   // ---------- Repérage des résultats ----------
-  function resultContainer(a) {
-    const c = a.closest(CONTAINER);
-    if (!c || c === document.body) return a.parentElement;
-    // Si le conteneur regroupe plusieurs résultats, ce n'est pas le bon niveau.
-    const keys = new Set();
-    for (const x of c.querySelectorAll('a[href]')) {
-      if (!x.textContent.trim()) continue;
-      const k = U.compareKey(x.href);
-      if (k) keys.add(k);
-      if (keys.size > 1) return a.parentElement;
+  function isLocationLink(a) {
+    return LOCATION_RE.test(a.getAttribute('aria-label') || '');
+  }
+
+  function cardOf(a) {
+    const c = a.closest(CARD);
+    return c && c !== document.body ? c : a.parentElement;
+  }
+
+  /** Dossier indiqué par le lien « Emplacement » de la carte, s'il existe. */
+  function locationOf(card) {
+    for (const x of card.querySelectorAll('a[href]')) {
+      if (!isLocationLink(x)) continue;
+      const p = U.parse(x.href);
+      if (p && p.path && p.kind === 'folder') return p;
     }
-    return c;
+    return null;
   }
 
   function scan() {
     if (!BSP.feature('parentButton') && !BSP.feature('enrichSearch')) return;
-    const anchors = document.querySelectorAll('a[href]:not([data-bsp-done])');
-    for (const a of anchors) {
+    const cards = new Map();
+    for (const a of document.querySelectorAll('a[href]:not([data-bsp-done])')) {
       a.setAttribute('data-bsp-done', '');
-      if (a.closest(EXCLUDE)) continue;
+      if (a.closest(EXCLUDE) || isLocationLink(a)) continue;
       if (!a.textContent.trim()) continue;
       const info = U.parse(a.href);
       if (!info || (info.kind !== 'file' && info.kind !== 'folder')) continue;
-      const container = resultContainer(a);
-      if (!container || container.hasAttribute('data-bsp-decorated')) continue;
-      container.setAttribute('data-bsp-decorated', '');
-      decorate(a, info, container);
+      const card = cardOf(a);
+      if (!card || card.hasAttribute('data-bsp-decorated')) continue;
+      // Le titre (dans un h1-h6) et les fichiers passent avant les autres liens de la carte.
+      const score = (a.closest('h1, h2, h3, h4, h5, h6') ? 4 : 0) + (info.kind === 'file' ? 2 : 0);
+      const prev = cards.get(card);
+      if (!prev || score > prev.score) cards.set(card, { a, info, score });
+    }
+    for (const [card, c] of cards) {
+      card.setAttribute('data-bsp-decorated', '');
+      decorate(c.a, c.info, card);
     }
     if (decorated.length) hideChip();
   }
@@ -123,6 +138,11 @@
 
   async function resolveEntry(entry) {
     let r = entry.info.path ? entry.info : null;
+    // Doc.aspx?sourcedoc=…&file=nom + lien « Emplacement » : le chemin est connu sans appel réseau.
+    if (!r && entry.info.fileName) {
+      const loc = locationOf(entry.container);
+      if (loc) r = Object.assign({}, entry.info, { path: loc.path + '/' + entry.info.fileName, origin: loc.origin, needsResolve: false });
+    }
     if (!r) {
       const row = matchRow(entry.info);
       if (row) {

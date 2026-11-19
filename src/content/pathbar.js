@@ -1,5 +1,5 @@
 /*
- * 9 · Chemin visible et copiable partout : une barre discrète en bas à gauche affiche
+ * 9 · Chemin visible et copiable partout : une barre discrète en bas de l'écran affiche
  * le chemin complet du dossier ou fichier courant, chaque segment est cliquable,
  * avec boutons copier (lien, chemin, Markdown), favori et versions.
  */
@@ -32,6 +32,7 @@
       r.appendChild(bar);
     }
     bar.classList.toggle('collapsed', collapsed);
+    bar.classList.toggle('left', BSP.settings.pathBarPosition === 'left');
     bar.textContent = '';
 
     const toggle = BSP.ui.iconButton(cur.kind === 'file' ? BSP.icons.file : BSP.icons.folder, collapsed ? 'Afficher le chemin' : 'Réduire', () => {
