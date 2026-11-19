@@ -53,6 +53,7 @@
         by: info.ModifiedBy && info.ModifiedBy.Title,
         size: Number(info.Length),
         url: U.fileUrl(origin, item.path),
+        openUrl: BSP.urlFor({ kind: 'file', path: item.path, origin }),
         comment: '',
         current: true,
       },
@@ -103,7 +104,7 @@
         if (on.length > 2) on.find((c) => c !== cb).checked = false;
         compareBtn.disabled = checks.filter((c) => c.checked).length !== 2;
       });
-      const openLink = BSP.el('a', { href: r.url, target: '_blank', rel: 'noopener', text: 'Ouvrir', class: 'link' });
+      const openLink = BSP.el('a', { href: r.openUrl || r.url, target: '_blank', rel: 'noopener', text: 'Ouvrir', class: 'link' });
       const prev = rows[i + 1];
       const delta = prev && !isNaN(prev.size) && !isNaN(r.size) ? r.size - prev.size : null;
       tbody.appendChild(

@@ -57,7 +57,11 @@
     if (!item || !item.path) return item && item.url;
     if (item.kind === 'folder') return BSP.folderUrl(item.path, item.origin);
     if (item.kind === 'site') return U.siteUrl(item.origin || location.origin, item.path);
-    return U.fileUrl(item.origin || location.origin, item.path);
+    const ctx = BSP.pageContext();
+    return U.fileOpenUrl(item.origin || location.origin, item.path, {
+      libraryRoot: ctx.listUrl || '',
+      webPath: BSP.webPathFor(item.path),
+    });
   };
 
   // ---------- Navigation SPA ----------

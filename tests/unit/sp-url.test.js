@@ -133,3 +133,17 @@ test('siteKey', () => {
   assert.equal(U.siteKey(O + '/sites/Compta/Docs/x.pdf'), 'contoso.sharepoint.com/sites/compta');
   assert.equal(U.siteKey(O + '/Shared%20Documents'), 'contoso.sharepoint.com');
 });
+
+test('fileOpenUrl : ouvre dans le navigateur au lieu de télécharger', () => {
+  assert.equal(U.fileOpenUrl(O, '/sites/X/Docs/A/Rapport final.docx'), O + '/sites/X/Docs/A/Rapport%20final.docx?web=1');
+  assert.equal(U.fileOpenUrl(O, '/sites/X/Docs/A/b.XLSX'), O + '/sites/X/Docs/A/b.XLSX?web=1');
+  assert.equal(
+    U.fileOpenUrl(O, '/sites/Intranet/IMADIS/Q/plan.pdf', { libraryRoot: '/sites/Intranet/IMADIS' }),
+    O + '/sites/Intranet/IMADIS/Forms/AllItems.aspx?id=%2Fsites%2FIntranet%2FIMADIS%2FQ%2Fplan.pdf&parent=%2Fsites%2FIntranet%2FIMADIS%2FQ'
+  );
+  assert.equal(
+    U.fileOpenUrl(O, '/sites/X/Docs/notes.txt'),
+    O + '/sites/X/Docs/Forms/AllItems.aspx?id=%2Fsites%2FX%2FDocs%2Fnotes.txt&parent=%2Fsites%2FX%2FDocs'
+  );
+  assert.match(U.fileOpenUrl('https://c-my.sharepoint.com', '/personal/j/Documents/a.pdf'), /onedrive\.aspx\?id=.*&parent=/);
+});

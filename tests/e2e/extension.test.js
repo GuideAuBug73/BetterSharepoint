@@ -214,7 +214,7 @@ test('4, 5, 7, 9 · barre de chemin, favoris, récents, raccourcis', async () =>
 test('11 · clic du milieu et Ctrl+clic sur les noms de la bibliothèque', async () => {
   const page = await openPage(LIB_URL);
   const name = page.locator('[data-id="heroField"]:has-text("rapport.docx")');
-  assert.equal(await openedUrl(() => name.click({ button: 'middle' })), ORIGIN + '/sites/X/Shared%20Documents/Projets/rapport.docx');
+  assert.equal(await openedUrl(() => name.click({ button: 'middle' })), ORIGIN + '/sites/X/Shared%20Documents/Projets/rapport.docx?web=1');
 
   const folder = page.locator('[data-id="heroField"]:has-text("Sous-dossier")');
   assert.equal(await openedUrl(() => folder.click({ modifiers: ['Control'] })), ORIGIN + '/sites/X/Shared%20Documents/Projets/Sous-dossier');
@@ -230,7 +230,7 @@ test('recherche dans une bibliothèque (view=7&q=) : chemins réels par identifi
   const page = await openPage(LIB_URL + '&view=7&q=rapport');
   const name = page.locator('[data-id="heroField"]:has-text("rapport.docx")');
   // Le fichier est dans un autre dossier que le dossier courant.
-  assert.equal(await openedUrl(() => name.click({ button: 'middle' })), ORIGIN + '/sites/X/Shared%20Documents/Archives/2025/rapport.docx');
+  assert.equal(await openedUrl(() => name.click({ button: 'middle' })), ORIGIN + '/sites/X/Shared%20Documents/Archives/2025/rapport.docx?web=1');
   await page.mouse.move(5, 5);
   await name.hover();
   await shadow(page, '.hovercard .hc-path:has-text("Archives/2025")').waitFor();

@@ -116,6 +116,30 @@
     return origin + encodePath(path);
   }
 
+  const OFFICE_EXT = /^(doc|docx|docm|dot|dotx|dotm|rtf|odt|xls|xlsx|xlsm|xlsb|xlt|xltx|xltm|ods|ppt|pptx|pptm|pps|ppsx|ppsm|pot|potx|potm|odp|vsd|vsdx|vsdm|one)$/;
+
+  /**
+   * URL pour OUVRIR un fichier dans le navigateur (l'URL brute déclenche souvent un téléchargement).
+   * - Office : URL du fichier + ?web=1 (Word, Excel, PowerPoint pour le web) ;
+   * - autres formats : aperçu dans la bibliothèque (AllItems.aspx?id=fichier&parent=dossier) ;
+   * - OneDrive personnel : onedrive.aspx?id=fichier&parent=dossier.
+   */
+  function fileOpenUrl(origin, path, opts) {
+    const o = opts || {};
+    const p = normalizePath(path);
+    if (OFFICE_EXT.test(extension(p))) return fileUrl(origin, p) + '?web=1';
+    const parent = parentPath(p);
+    if (isPersonal(p)) {
+      return origin + encodePath(siteCollectionPath(p)) + '/_layouts/15/onedrive.aspx?id=' + encodeURIComponent(p) + '&parent=' + encodeURIComponent(parent);
+    }
+    let lib = o.libraryRoot ? normalizePath(o.libraryRoot) : '';
+    if (!lib || !p.toLowerCase().startsWith(lib.toLowerCase() + '/')) lib = libraryRoot(p, o.webPath);
+    if (lib) {
+      return origin + encodePath(lib) + '/Forms/AllItems.aspx?id=' + encodeURIComponent(p) + '&parent=' + encodeURIComponent(parent);
+    }
+    return fileUrl(origin, p) + '?web=1';
+  }
+
   function siteUrl(origin, webPath) {
     const w = normalizePath(webPath || '/');
     return origin + (w === '/' ? '/' : encodePath(w));
@@ -285,6 +309,7 @@
     isPersonal,
     folderUrl,
     fileUrl,
+    fileOpenUrl,
     siteUrl,
     stripGuid,
     parse,
