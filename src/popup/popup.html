@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>BetterSharePoint</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <img src="../icons/icon32.png" alt="" width="20" height="20" />
+      <strong>BetterSharePoint</strong>
+      <button id="options" class="link" type="button" title="Options">Options</button>
+    </header>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-fav" aria-selected="true" aria-controls="panel">Favoris</button>
+      <button role="tab" id="tab-rec" aria-selected="false" aria-controls="panel">Récents</button>
+    </div>
+    <input id="filter" type="search" placeholder="Filtrer…" aria-label="Filtrer la liste" autocomplete="off" />
+    <ul id="panel" class="list" role="tabpanel"></ul>
+    <section class="toggles" aria-label="Réglages rapides">
+      <label><input type="checkbox" id="dark" /> Mode sombre</label>
+      <label><input type="checkbox" id="darkSite" /> …sauf sur ce site</label>
+      <label><input type="checkbox" id="compact" /> Mode compact</label>
+    </section>
+    <footer class="hint">Astuce : <kbd>Ctrl</kbd>+<kbd>K</kbd> dans SharePoint ouvre la palette.</footer>
+    <script src="../lib/sp-url.js"></script>
+    <script src="../lib/settings.js"></script>
+    <script src="../lib/fuzzy.js"></script>
+    <script src="../lib/store.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>
