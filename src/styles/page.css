@@ -1,0 +1,194 @@
+/*
+ * Styles injectés dans les pages SharePoint.
+ * Tout est préfixé "bsp-" et n'agit que si une classe de l'extension est posée sur <html>.
+ */
+
+/* ---------- 14 · Mode sombre ----------
+ * Inversion des couleurs de toute la page puis ré-inversion des médias.
+ * Plus robuste qu'un thème par composant : couvre aussi les vues que Microsoft modifie. */
+html.bsp-dark {
+  filter: invert(0.9) hue-rotate(180deg) !important;
+  background-color: #fff !important;
+}
+html.bsp-dark img,
+html.bsp-dark video,
+html.bsp-dark picture,
+html.bsp-dark canvas,
+html.bsp-dark iframe,
+html.bsp-dark embed,
+html.bsp-dark object,
+html.bsp-dark svg image,
+html.bsp-dark [style*='background-image'] {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+html.bsp-dark [style*='background-image'] img,
+html.bsp-dark picture img {
+  filter: none !important;
+}
+
+/* ---------- 10 · Mode compact ---------- */
+html.bsp-compact .ms-DetailsRow,
+html.bsp-compact .ms-DetailsRow-fields,
+html.bsp-compact [role='grid'] [role='row'] {
+  min-height: 30px !important;
+}
+html.bsp-compact .ms-DetailsRow-cell,
+html.bsp-compact .ms-DetailsRow-cellCheck,
+html.bsp-compact [role='grid'] [role='row'] > [role='gridcell'] {
+  min-height: 30px !important;
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+}
+html.bsp-compact .ms-DetailsHeader {
+  height: 34px !important;
+  padding-top: 0 !important;
+}
+html.bsp-compact .ms-DetailsHeader-cell {
+  height: 34px !important;
+  line-height: 34px !important;
+}
+html.bsp-compact .ms-CommandBar {
+  height: 36px !important;
+  min-height: 36px !important;
+}
+html.bsp-compact .CanvasZone,
+html.bsp-compact [data-automation-id='CanvasZone'] {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+html.bsp-compact .ControlZone,
+html.bsp-compact [data-automation-id='CanvasControl'] {
+  margin-top: 4px !important;
+  margin-bottom: 4px !important;
+}
+
+/* Éléments masquables (réglages > Mode compact). */
+html.bsp-hide-siteHeader [data-automationid='SiteHeader'],
+html.bsp-hide-siteHeader [data-automation-id='SiteHeader'],
+html.bsp-hide-siteHeader #spSiteHeader,
+html.bsp-hide-siteHeader [data-sp-feature-tag='Site header host'] {
+  display: none !important;
+}
+html.bsp-hide-appBar #sp-appBar,
+html.bsp-hide-appBar [data-automationid='sp-appBar'],
+html.bsp-hide-appBar [data-sp-feature-tag='AppBar'] {
+  display: none !important;
+}
+html.bsp-hide-comments [data-sp-feature-tag='Comments'],
+html.bsp-hide-comments #CommentsWrapper,
+html.bsp-hide-comments [data-automation-id='sp-socialbar'],
+html.bsp-hide-comments [data-sp-feature-tag='Social Bar'] {
+  display: none !important;
+}
+html.bsp-hide-feedback button[data-automationid*='feedback' i],
+html.bsp-hide-feedback a[data-automationid*='feedback' i],
+html.bsp-hide-feedback [data-automation-id*='feedback' i] {
+  display: none !important;
+}
+html.bsp-hide-footer [data-sp-feature-tag='Footer'],
+html.bsp-hide-footer [data-automation-id='SimpleFooter'],
+html.bsp-hide-footer [data-automationid='SimpleFooter'] {
+  display: none !important;
+}
+
+/* ---------- 1 et 8 · Boutons et métadonnées ajoutés aux résultats de recherche ---------- */
+.bsp-actions {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 2px;
+  margin-left: 6px;
+  vertical-align: middle;
+  position: relative;
+  z-index: 2;
+}
+.bsp-btn {
+  all: unset;
+  box-sizing: border-box;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #0f6cbd !important;
+  text-decoration: none !important;
+  line-height: 1;
+}
+.bsp-btn:hover,
+.bsp-btn:focus-visible {
+  background: rgba(15, 108, 189, 0.12);
+  outline: none;
+}
+.bsp-btn:focus-visible {
+  box-shadow: 0 0 0 2px #0f6cbd;
+}
+.bsp-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  pointer-events: none;
+}
+.bsp-btn[aria-pressed='true'] {
+  color: #c27c0e !important;
+}
+.bsp-btn[aria-busy='true'] {
+  opacity: 0.5;
+  cursor: progress;
+}
+.bsp-meta {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 10px;
+  margin: 4px 0 2px;
+  font: 12px/1.5 'Segoe UI', system-ui, sans-serif;
+  color: #424242;
+}
+.bsp-crumbs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 2px;
+}
+.bsp-crumbs a {
+  color: #0f6cbd !important;
+  text-decoration: none !important;
+  padding: 0 2px;
+  border-radius: 3px;
+}
+.bsp-crumbs a:hover {
+  text-decoration: underline !important;
+  background: rgba(15, 108, 189, 0.08);
+}
+.bsp-crumbs .bsp-sep {
+  color: #8a8a8a;
+}
+.bsp-dup {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: #fff4ce;
+  color: #6b4c00;
+  font-size: 11px;
+  cursor: help;
+}
+.bsp-flash {
+  animation: bsp-flash 1.2s ease-out;
+}
+@keyframes bsp-flash {
+  from {
+    background-color: rgba(255, 196, 0, 0.45);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+/* Sélecteur d'éléments à masquer (mode compact) */
+.bsp-pick-hover {
+  outline: 2px dashed #d13438 !important;
+  outline-offset: -2px !important;
+  background-color: rgba(209, 52, 56, 0.08) !important;
+  cursor: crosshair !important;
+}

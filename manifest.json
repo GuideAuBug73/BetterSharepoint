@@ -1,0 +1,106 @@
+{
+  "manifest_version": 3,
+  "name": "BetterSharePoint",
+  "short_name": "BetterSP",
+  "version": "0.1.0",
+  "description": "Rend SharePoint Online plus pratique : dossier parent depuis la recherche, favoris, palette Ctrl+K, chemins copiables, mode sombre…",
+  "minimum_chrome_version": "111",
+  "icons": {
+    "16": "src/icons/icon16.png",
+    "32": "src/icons/icon32.png",
+    "48": "src/icons/icon48.png",
+    "128": "src/icons/icon128.png"
+  },
+  "action": {
+    "default_title": "BetterSharePoint",
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "src/icons/icon16.png",
+      "32": "src/icons/icon32.png"
+    }
+  },
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": true
+  },
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": [
+    "https://*.sharepoint.com/*",
+    "https://*.sharepoint.us/*",
+    "https://*.sharepoint-mil.us/*",
+    "https://*.sharepoint.de/*",
+    "https://*.sharepoint.cn/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.sharepoint.com/*",
+        "https://*.sharepoint.us/*",
+        "https://*.sharepoint-mil.us/*",
+        "https://*.sharepoint.de/*",
+        "https://*.sharepoint.cn/*"
+      ],
+      "js": ["src/content/page-bridge.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://*.sharepoint.com/*",
+        "https://*.sharepoint.us/*",
+        "https://*.sharepoint-mil.us/*",
+        "https://*.sharepoint.de/*",
+        "https://*.sharepoint.cn/*"
+      ],
+      "css": ["src/styles/page.css"],
+      "js": ["src/lib/sp-url.js", "src/lib/settings.js", "src/content/theme.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://*.sharepoint.com/*",
+        "https://*.sharepoint.us/*",
+        "https://*.sharepoint-mil.us/*",
+        "https://*.sharepoint.de/*",
+        "https://*.sharepoint.cn/*"
+      ],
+      "js": [
+        "src/lib/search-parse.js",
+        "src/lib/fuzzy.js",
+        "src/lib/diff.js",
+        "src/lib/keys.js",
+        "src/lib/store.js",
+        "src/content/core.js",
+        "src/content/api.js",
+        "src/content/ui.js",
+        "src/content/recents.js",
+        "src/content/favorites.js",
+        "src/content/actions.js",
+        "src/content/search.js",
+        "src/content/pathbar.js",
+        "src/content/newtab.js",
+        "src/content/hover.js",
+        "src/content/versions.js",
+        "src/content/palette.js",
+        "src/content/shortcuts.js",
+        "src/content/main.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/styles/ui.css"],
+      "matches": [
+        "https://*.sharepoint.com/*",
+        "https://*.sharepoint.us/*",
+        "https://*.sharepoint-mil.us/*",
+        "https://*.sharepoint.de/*",
+        "https://*.sharepoint.cn/*"
+      ]
+    }
+  ]
+}

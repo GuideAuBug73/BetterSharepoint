@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Options – BetterSharePoint</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <h1><img src="../icons/icon48.png" alt="" width="32" height="32" /> BetterSharePoint</h1>
+      <p class="saved" id="saved" role="status" aria-live="polite"></p>
+
+      <section>
+        <h2>Fonctionnalités</h2>
+        <div class="grid" id="features"></div>
+      </section>
+
+      <section>
+        <h2>Navigation</h2>
+        <label class="row"><input type="checkbox" data-path="alwaysNewTab" /> Toujours ouvrir les fichiers et les résultats de recherche dans un nouvel onglet</label>
+        <label class="row">
+          Ouverture des dossiers
+          <select data-path="folderOpenMode">
+            <option value="direct">URL directe du dossier (recommandé)</option>
+            <option value="allitems">Vue de bibliothèque (Forms/AllItems.aspx?id=…)</option>
+          </select>
+        </label>
+        <label class="row">
+          Position de la barre de chemin
+          <select data-path="pathBarPosition">
+            <option value="right">En bas à droite</option>
+            <option value="left">En bas à gauche</option>
+          </select>
+        </label>
+        <label class="row">Nombre de dossiers récents mémorisés <input type="number" min="5" max="100" data-path="recentsMax" /></label>
+        <label class="row">Délai avant l’aperçu au survol (ms) <input type="number" min="150" max="3000" step="50" data-path="hoverDelay" /></label>
+      </section>
+
+      <section>
+        <h2>Mode sombre</h2>
+        <label class="row"><input type="checkbox" data-path="dark.enabled" /> Activer le mode sombre</label>
+        <p class="help">Sites exclus (une ligne par site, au format <code>contoso.sharepoint.com/sites/monsite</code>) :</p>
+        <textarea id="darkExcluded" rows="3" spellcheck="false"></textarea>
+      </section>
+
+      <section>
+        <h2>Mode compact</h2>
+        <label class="row"><input type="checkbox" data-path="compact.enabled" /> Activer le mode compact (lignes et marges réduites)</label>
+        <p class="help">Éléments à masquer quand le mode compact est actif :</p>
+        <div class="grid">
+          <label><input type="checkbox" data-path="compact.hide.siteHeader" /> En-tête du site</label>
+          <label><input type="checkbox" data-path="compact.hide.appBar" /> Barre d’applications à gauche</label>
+          <label><input type="checkbox" data-path="compact.hide.comments" /> Commentaires et barre sociale des pages</label>
+          <label><input type="checkbox" data-path="compact.hide.feedback" /> Boutons « Commentaires / Feedback »</label>
+          <label><input type="checkbox" data-path="compact.hide.footer" /> Pied de page du site</label>
+        </div>
+        <p class="help">
+          Sélecteurs CSS supplémentaires à masquer, un par ligne. Le plus simple : dans SharePoint, Ctrl+K puis
+          « Masquer un élément de la page… » et clique sur l’élément.
+        </p>
+        <textarea id="customSelectors" rows="5" spellcheck="false"></textarea>
+      </section>
+
+      <section>
+        <h2>Raccourcis clavier</h2>
+        <p class="help">Clique sur un raccourci puis appuie sur la nouvelle combinaison. Retour arrière pour le désactiver, Échap pour annuler.</p>
+        <table id="shortcuts"></table>
+        <button type="button" id="resetShortcuts">Rétablir les raccourcis par défaut</button>
+      </section>
+
+      <section>
+        <h2>Favoris</h2>
+        <p class="help">Les favoris sont synchronisés par ton navigateur. Tu peux aussi les exporter pour les copier vers un autre navigateur.</p>
+        <div class="buttons">
+          <button type="button" id="exportFav">Exporter (JSON)</button>
+          <label class="button">Importer… <input type="file" id="importFav" accept="application/json,.json" hidden /></label>
+          <button type="button" id="clearRecents">Vider l’historique des dossiers récents</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>Confidentialité</h2>
+        <p class="help">
+          L’extension ne contacte que les sites SharePoint que tu visites, avec ta propre session. Aucune donnée n’est
+          envoyée ailleurs. Favoris, récents et réglages restent dans le stockage de ton navigateur.
+        </p>
+      </section>
+    </main>
+    <script src="../lib/settings.js"></script>
+    <script src="../lib/keys.js"></script>
+    <script src="../lib/store.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>
